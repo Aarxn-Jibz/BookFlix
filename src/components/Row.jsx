@@ -1,7 +1,8 @@
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
 import { useBookContext } from '../context/BookContext'
-import { useState } from 'react'
+
 
 const BookCard = ({ bookId, showMatch, matchScore, index }) => {
   const { getBookById, toggleLike, isLiked } = useBookContext()
@@ -83,11 +84,10 @@ const BookCard = ({ bookId, showMatch, matchScore, index }) => {
           className="absolute top-2 right-2 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors"
         >
           <Heart
-            className={`w-5 h-5 ${
-              liked
-                ? 'fill-netflix-red text-netflix-red'
-                : 'text-white fill-none'
-            } transition-all duration-200`}
+            className={`w-5 h-5 ${liked
+              ? 'fill-netflix-red text-netflix-red'
+              : 'text-white fill-none'
+              } transition-all duration-200`}
           />
         </motion.button>
       </motion.div>
@@ -95,7 +95,7 @@ const BookCard = ({ bookId, showMatch, matchScore, index }) => {
   )
 }
 
-const Row = ({ title, books, showMatch = false }) => {
+const Row = React.memo(({ title, books, showMatch = false }) => {
   const calculateMatchScore = (index) => {
     if (!showMatch) return undefined
     // Top picks: descending from 98%
@@ -107,10 +107,10 @@ const Row = ({ title, books, showMatch = false }) => {
   }
 
   // Filter out invalid book IDs
-  const validBooks = books.filter(bookId => 
-    bookId !== null && 
-    bookId !== undefined && 
-    !isNaN(bookId) && 
+  const validBooks = books.filter(bookId =>
+    bookId !== null &&
+    bookId !== undefined &&
+    !isNaN(bookId) &&
     bookId >= 0
   )
 
@@ -136,6 +136,21 @@ const Row = ({ title, books, showMatch = false }) => {
       </div>
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  if (prevProps.title !== nextProps.title) return false
+  if (prevProps.showMatch !== nextProps.showMatch) return false
+
+  // Compare books array content (IDs)
+  if (prevProps.books === nextProps.books) return true
+  if (!prevProps.books || !nextProps.books) return false
+  if (prevProps.books.length !== nextProps.books.length) return false
+
+  for (let i = 0; i < prevProps.books.length; i++) {
+    if (prevProps.books[i] !== nextProps.books[i]) return false
+  }
+
+  return true
+})
 
 export default Row

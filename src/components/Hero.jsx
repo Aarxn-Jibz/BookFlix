@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useBookContext } from '../context/BookContext'
 import { Play } from 'lucide-react'
 
@@ -9,19 +9,32 @@ const Hero = () => {
 
   useEffect(() => {
     if (recommendations && recommendations.length > 0) {
-      const book = getBookById(recommendations[0])
+      const topBookId = recommendations[0]
+
+      // Prevent unnecessary updates/re-renders if the top book hasn't changed
+      if (heroBook && heroBook.id === topBookId) {
+        return
+      }
+
+      const book = getBookById(topBookId)
       if (book) {
-        setHeroBook(book)
+        // Generate a stable "match score" for this session/book
+        // For the top pick, usually 95-99%
+        const score = 95 + Math.floor(Math.random() * 5)
+        setHeroBook({ ...book, matchScore: score })
         return
       }
     }
-    // Fallback to random book if no recommendations
-    const randomBooks = getRandomBooks(1)
-    if (randomBooks.length > 0) {
-      const book = getBookById(randomBooks[0])
-      if (book) setHeroBook(book)
+
+    // Fallback to random book if no recommendations and no current hero
+    if (!heroBook) {
+      const randomBooks = getRandomBooks(1)
+      if (randomBooks.length > 0) {
+        const book = getBookById(randomBooks[0])
+        if (book) setHeroBook({ ...book, matchScore: 90 + Math.floor(Math.random() * 8) })
+      }
     }
-  }, [recommendations, getBookById, getRandomBooks])
+  }, [recommendations, getBookById, getRandomBooks, heroBook])
 
   if (!heroBook) {
     return null
@@ -68,7 +81,7 @@ const Hero = () => {
             className="mb-4"
           >
             <span className="inline-block px-3 py-1.5 bg-netflix-red text-white font-bold rounded-md text-sm">
-              98% Match
+              {topBook.matchScore || 98}% Match
             </span>
           </motion.div>
 
@@ -95,4 +108,6 @@ const Hero = () => {
   )
 }
 
-export default Hero
+export default React.memo(Hero)
+
+

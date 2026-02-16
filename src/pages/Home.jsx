@@ -46,11 +46,11 @@ const Home = () => {
     setShowSearch(true) // Always show when there's a query
     const query = searchQuery.toLowerCase().trim()
     const results = []
-    
+
     // Search through ALL books - no limit
     console.log('🔍 Searching through', bookTitles.length, 'books for:', query)
     const startTime = performance.now()
-    
+
     for (let i = 0; i < bookTitles.length; i++) {
       const title = bookTitles[i]
       if (title && typeof title === 'string' && title.toLowerCase().includes(query)) {
@@ -61,10 +61,10 @@ const Home = () => {
         console.log(`  Searched ${i}/${bookTitles.length} books, found ${results.length} matches...`)
       }
     }
-    
+
     const endTime = performance.now()
     console.log(`✅ Search complete: ${results.length} results in ${(endTime - startTime).toFixed(2)}ms`)
-    
+
     // Limit display to 50 results for performance, but search all
     setSearchResults(results.slice(0, 50))
   }, [searchQuery, bookTitles])
@@ -100,7 +100,7 @@ const Home = () => {
       </div>
 
       {/* Search Results */}
-      {searchQuery && searchQuery.trim() !== '' && (
+      {showSearch && searchQuery && searchQuery.trim() !== '' && (
         <div className="relative z-40 px-8 py-4 bg-netflix-black" onClick={(e) => e.stopPropagation()}>
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -152,7 +152,7 @@ const Home = () => {
           {recommendations && recommendations.length > 0 && (
             <Row
               title="Top Picks for You"
-              books={recommendations}
+              books={recommendations.slice(0, 10)}
               showMatch={true}
             />
           )}
