@@ -34,7 +34,6 @@ const Home = () => {
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setSearchResults([])
-      setShowSearch(false)
       return
     }
 
@@ -42,8 +41,6 @@ const Home = () => {
       setSearchResults([])
       return
     }
-
-    setShowSearch(true) // Always show when there's a query
     const query = searchQuery.toLowerCase().trim()
     const results = []
 
