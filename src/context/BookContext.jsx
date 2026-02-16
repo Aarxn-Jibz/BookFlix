@@ -304,67 +304,72 @@ export const BookProvider = ({ children }) => {
           console.log('Recommendations received:', recs)
           if (recs && recs.length > 0) {
             // Filter out already liked books from recommendations
-            let filteredRecs = recs.filter(bookId => !likedBooks.includes(bookId))
+            const filteredRecs = recs.filter(bookId => !likedBooks.includes(bookId))
 
             // If user has liked books, enhance recommendations with similar books
             if (likedBooks.length > 0) {
-              // Get recommendations based on liked books - use stable order
+              // Generate recommendations based on liked books using FRESH filteredRecs as pool
+              const pool = filteredRecs
               const likedBasedRecs = []
-              likedBooks.forEach(likedBookId => {
-                const similarBooks = getSimulatedRecommendations(likedBookId, 5)
-                similarBooks.forEach(bookId => {
-                  if (!likedBasedRecs.includes(bookId) && !likedBooks.includes(bookId)) {
-                    likedBasedRecs.push(bookId)
+
+              if (pool.length > 0) {
+                // Iterate through ALL liked books to gather related suggestions
+                likedBooks.forEach(likedBookId => {
+                  // Deterministic pseudo-random selection based on book ID
+                  const offset = (likedBookId * 7) % pool.length
+                  const count = 3 // Pick 3 per liked book
+
+                  for (let i = 0; i < count; i++) {
+                    const index = (offset + i) % pool.length
+                    const bookId = pool[index]
+
+                    if (bookId !== likedBookId && !likedBasedRecs.includes(bookId) && !likedBooks.includes(bookId)) {
+                      likedBasedRecs.push(bookId)
+                    }
                   }
                 })
-              })
+              }
 
-              // Combine: prioritize liked-based recommendations, then fill with model recommendations
+              // Combine: prioritize liked-based recommendations, then fill with the rest
               const newCombined = [
-                ...likedBasedRecs.slice(0, 5), // Top 5 from liked books
+                ...likedBasedRecs,
                 ...filteredRecs.filter(id => !likedBasedRecs.includes(id))
-              ].slice(0, 60) // Keep top 60
+              ].slice(0, 60)
 
-
-              // Stability check: only update if books actually changed
-              // Preserve order when match scores would be the same
+              // Stability check using refined criteria
               const currentRecs = recommendations.length > 0 ? recommendations : []
-
-              // Check if it's just a reordering of the same books (same match scores)
               const currentSet = new Set(currentRecs)
               const newSet = new Set(newCombined)
               const sameBooks = currentSet.size === newSet.size &&
-                [...currentSet].every(id => newSet.has(id))
+                [...currentSet].every(id => newSet.has(id)) &&
+                // Check top 10 order stability
+                currentRecs.slice(0, 10).every((id, i) => id === newCombined[i])
 
               if (sameBooks && currentRecs.length > 0) {
-                // Same books, keep current order (preserves match scores)
-                console.log('⏸️ Same books detected, preserving order for stable match scores')
-                // Don't update - keep current recommendations
-              } else if (newCombined.length > 0) {
-                // Different books or first time - update
+                console.log('⏸️ Same books and order detected, skipping update')
+              } else {
                 setRecommendations(newCombined)
-                console.log('✅ Updated recommendations based on liked books:', newCombined)
+                console.log('✅ Updated recommendations:', newCombined.slice(0, 10))
               }
             } else {
-              // No liked books yet, use original recommendations
-              // Only update if different to prevent unnecessary re-renders
-              const currentRecs = recommendations
-              if (JSON.stringify(currentRecs) !== JSON.stringify(filteredRecs.length > 0 ? filteredRecs : recs)) {
-                setRecommendations(filteredRecs.length > 0 ? filteredRecs : recs)
+              // No liked books yet, use filtered recommendations
+              if (JSON.stringify(recommendations) !== JSON.stringify(filteredRecs)) {
+                setRecommendations(filteredRecs)
               }
             }
           } else {
+            // Fallback
+            const fallback = Array.from({ length: 60 }, (_, i) => Math.floor(Math.random() * Math.min(bookTitles.length, 1000)))
             setRecommendations(fallback)
           }
         })
         .catch(error => {
           console.error('Error in recommendation effect:', error)
-          // Fallback on error
           const fallback = Array.from({ length: 60 }, (_, i) => Math.floor(Math.random() * Math.min(bookTitles.length, 1000)))
           setRecommendations(fallback)
         })
     }
-  }, [currentUserIndex, model, getRecommendations, bookTitles.length])
+  }, [currentUserIndex, model, getRecommendations, bookTitles.length, likedBooks])
 
   const value = React.useMemo(() => ({
     loading,
