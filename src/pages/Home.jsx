@@ -79,7 +79,7 @@ const Home = () => {
           <h1 className="text-3xl font-bold text-netflix-red">BookFlix</h1>
           <div className="flex-1 max-w-2xl">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search for books..."
@@ -89,6 +89,7 @@ const Home = () => {
                   setShowSearch(true) // Always show results when typing
                 }}
                 onFocus={() => setShowSearch(true)}
+                onClick={() => setShowSearch(true)} // Ensure click re-opens it if already focused
                 className="w-full pl-10 pr-4 py-3 bg-black/50 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-netflix-red transition-colors"
               />
             </div>

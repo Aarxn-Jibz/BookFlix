@@ -34,9 +34,12 @@ const BookCard = ({ bookId, showMatch, matchScore, index }) => {
         {/* Book Cover */}
         <img
           src={book.image || 'https://via.placeholder.com/300x450?text=Book+Cover'}
+          referrerPolicy="no-referrer"
           alt={book.title}
+          loading="lazy"
           className="w-full h-full object-cover"
           onError={(e) => {
+            e.target.onerror = null; // Prevent infinite loop
             e.target.src = 'https://via.placeholder.com/300x450?text=Book+Cover'
           }}
         />

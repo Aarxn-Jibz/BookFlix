@@ -73,11 +73,24 @@ export const BookProvider = ({ children }) => {
         const vocab = JSON.parse(vocabText)
 
         // Clean up images array - replace null/NaN with empty string
+        // Clean up images array - replace null/NaN with empty string and validate URLs
         const cleanedImages = images.map((img, index) => {
           if (img === null || img === undefined || img === 'NaN' || String(img).trim() === 'NaN' || String(img) === 'null') {
             return ''
           }
-          return String(img)
+          let url = String(img).trim()
+
+          // Force HTTPS
+          if (url.startsWith('http:')) {
+            url = url.replace('http:', 'https:')
+          }
+
+          // Basic validation: must start with http (now https)
+          if (!url.startsWith('http')) {
+            // console.warn(`Invalid image URL at index ${index}:`, url)
+            return ''
+          }
+          return url
         })
 
         console.log('✅ Successfully loaded books:', {

@@ -54,12 +54,18 @@ const Hero = () => {
       className="relative w-full h-[50vh] overflow-hidden"
     >
       {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${topBook.image || 'https://via.placeholder.com/1920x1080?text=Book+Cover'})`,
-        }}
-      >
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <img
+          src={topBook.image || 'https://via.placeholder.com/1920x1080?text=Book+Cover'}
+          referrerPolicy="no-referrer"
+          alt={topBook.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.onerror = null; // Prevent infinite loop
+            e.target.src = 'https://via.placeholder.com/1920x1080?text=Book+Cover';
+          }}
+        />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
